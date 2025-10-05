@@ -78,11 +78,12 @@ export const TrainCard = ({ train }: TrainCardProps) => {
 
           {/* Action Button */}
           <div className="flex flex-col gap-2 md:items-end">
-            <Button variant="default" className="w-full md:w-auto">
-              Check Availability
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full md:w-auto text-primary hover:text-primary">
-              View Details
+            <Button 
+              variant="default" 
+              className="w-full md:w-auto"
+              onClick={() => window.location.href = `/train/${train.number}`}
+            >
+              View Full Details
             </Button>
           </div>
         </div>

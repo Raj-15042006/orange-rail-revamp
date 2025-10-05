@@ -9,16 +9,21 @@ import { Train, Sparkles } from 'lucide-react';
 const Index = () => {
   const [filteredTrains, setFilteredTrains] = useState(sampleTrains);
 
-  const handleSearch = (from: string, to: string) => {
-    if (!from && !to) {
+  const handleSearch = (from: string, to: string, day: string) => {
+    if (!from && !to && !day) {
       setFilteredTrains(sampleTrains);
       return;
     }
 
     const filtered = sampleTrains.filter(train => {
-      const matchFrom = !from || train.from.toLowerCase().includes(from.toLowerCase());
-      const matchTo = !to || train.to.toLowerCase().includes(to.toLowerCase());
-      return matchFrom && matchTo;
+      const matchFrom = !from || 
+        train.from.toLowerCase().includes(from.toLowerCase()) || 
+        train.fromCode.toLowerCase().includes(from.toLowerCase());
+      const matchTo = !to || 
+        train.to.toLowerCase().includes(to.toLowerCase()) || 
+        train.toCode.toLowerCase().includes(to.toLowerCase());
+      const matchDay = !day || train.days.includes(day);
+      return matchFrom && matchTo && matchDay;
     });
 
     setFilteredTrains(filtered);
