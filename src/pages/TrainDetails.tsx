@@ -173,9 +173,18 @@ const TrainDetails = () => {
             <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
               <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
                 <Gauge className="h-5 w-5 text-primary" />
-                Locomotive
+                Locomotive Details
               </h3>
-              <p className="text-sm text-foreground">{train.engine}</p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Engine</p>
+                  <p className="text-sm text-foreground font-medium">{train.engine}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Home Shed</p>
+                  <p className="text-sm text-foreground font-medium">{train.engineShed}</p>
+                </div>
+              </div>
             </Card>
           </div>
         </div>

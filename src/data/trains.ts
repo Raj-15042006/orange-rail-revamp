@@ -33,6 +33,7 @@ export interface Train {
   ratings: TrainRating;
   coachTypes: string[];
   engine: string;
+  engineShed: string;
   history: string;
   crossings?: string[];
   overtakes?: string[];
@@ -64,6 +65,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.7, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7 (Primary), WAP-5 (Secondary)',
+    engineShed: 'NDLS/New Delhi',
     history: 'Introduced in 1969, the Howrah Rajdhani was India\'s first Rajdhani Express service connecting the capital with Kolkata. It set benchmarks for speed, punctuality, and comfort in Indian Railways.',
     crossings: ['12302 Howrah Rajdhani (Return) at Kanpur', '12313 Sealdah Rajdhani at DDU'],
     overtakes: ['12303 Poorva Express at Dhanbad', '12381 Poorva Express at Gaya']
@@ -93,6 +95,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.7, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7 (Primary), WAP-5 (Secondary)',
+    engineShed: 'HWH/Howrah',
     history: 'Return service of 12301, maintaining the same high standards of speed and comfort established since 1969.',
     crossings: ['12301 Howrah Rajdhani at Kanpur'],
     overtakes: ['12381 Poorva Express at Gaya']
@@ -122,6 +125,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.6, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'SDAH/Sealdah',
     history: 'Connecting Sealdah with New Delhi since 2000, this Rajdhani serves as an alternative route from Kolkata to the capital.',
     crossings: ['12314 Sealdah Rajdhani (Return) at Gaya'],
     overtakes: ['13119 Katihar Express at DDU']
@@ -151,6 +155,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.6, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'NDLS/New Delhi',
     history: 'Return service of 12313, connecting New Delhi with Sealdah since 2000.',
     crossings: ['12313 Sealdah Rajdhani at Gaya'],
     overtakes: ['12303 Poorva Express at Dhanbad']
@@ -179,6 +184,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.5, cleanliness: 4.7, punctuality: 4.6, comfort: 4.8 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-5 (Primary), WAP-7 (Secondary)',
+    engineShed: 'BRC/Vadodara',
     history: 'Launched in 1972, this Rajdhani connects India\'s financial capital Mumbai with the political capital New Delhi, serving business travelers and tourists.',
     crossings: ['12952 Mumbai Rajdhani (Return) at Vadodara', '12957 Swarna Jayanti Rajdhani at Ratlam'],
     overtakes: ['12955 Jaipur Superfast at Kota', '12903 Golden Temple Mail at Ratlam']
@@ -207,6 +213,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.5, cleanliness: 4.7, punctuality: 4.6, comfort: 4.8 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-5 (Primary), WAP-7 (Secondary)',
+    engineShed: 'BRC/Vadodara',
     history: 'Return service of 12951, maintaining the same premium standards since 1972.',
     crossings: ['12951 Mumbai Rajdhani at Vadodara'],
     overtakes: ['12903 Golden Temple Mail at Ratlam']
@@ -236,6 +243,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.7, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-5 (Primary), WAP-7 (Secondary)',
+    engineShed: 'ADI/Ahmedabad',
     history: 'Named after India\'s Golden Jubilee of Independence (1997), this Rajdhani connects Gujarat with Delhi, introduced in 1998.',
     crossings: ['12958 Swarna Jayanti Rajdhani (Return) at Jaipur', '12951 Mumbai Rajdhani at Abu Road'],
     overtakes: ['12989 Ajmer Shatabdi at Jaipur']
@@ -265,6 +273,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.6, cleanliness: 4.8, punctuality: 4.7, comfort: 4.9 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-5 (Primary), WAP-7 (Secondary)',
+    engineShed: 'ADI/Ahmedabad',
     history: 'Return service of 12957, serving passengers since 1998.',
     crossings: ['12957 Swarna Jayanti Rajdhani at Jaipur'],
     overtakes: ['12989 Ajmer Shatabdi at Jaipur']
@@ -293,6 +302,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.3, cleanliness: 4.9, punctuality: 4.8, comfort: 4.7 },
     coachTypes: ['Chair Car', 'Executive Class', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'GZB/Ghaziabad',
     history: 'One of India\'s premium day trains since 1988, offering high-speed daytime travel between Delhi and Bhopal with complimentary meals.',
     crossings: ['12001 Bhopal Shatabdi (Return) at Gwalior', '12003 Lucknow Shatabdi at Agra'],
     overtakes: ['12615 Grand Trunk Express at Jhansi']
@@ -321,6 +331,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.3, cleanliness: 4.9, punctuality: 4.8, comfort: 4.7 },
     coachTypes: ['Chair Car', 'Executive Class', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'GZB/Ghaziabad',
     history: 'Return service of 12002, serving passengers since 1988.',
     crossings: ['12002 Bhopal Shatabdi at Gwalior'],
     overtakes: ['12616 Grand Trunk Express at Jhansi']
@@ -347,6 +358,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.1, cleanliness: 4.8, punctuality: 4.7, comfort: 4.6 },
     coachTypes: ['Chair Car', 'Executive Class', 'Pantry Car', 'EOG'],
     engine: 'WAP-5',
+    engineShed: 'BRC/Vadodara',
     history: 'Connecting Gujarat\'s largest city with Mumbai since 1991, this premium day service caters to business travelers.',
     crossings: ['12010 Ahmedabad-Mumbai Shatabdi (Return) at Vadodara'],
     overtakes: ['12927 Gujarat Mail at Vadodara']
@@ -373,6 +385,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.1, cleanliness: 4.8, punctuality: 4.7, comfort: 4.6 },
     coachTypes: ['Chair Car', 'Executive Class', 'Pantry Car', 'EOG'],
     engine: 'WAP-5',
+    engineShed: 'BRC/Vadodara',
     history: 'Return service of 12009, serving since 1991.',
     crossings: ['12009 Mumbai-Ahmedabad Shatabdi at Vadodara'],
     overtakes: ['12928 Gujarat Mail at Vadodara']
@@ -402,6 +415,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.7, cleanliness: 4.7, punctuality: 4.4, comfort: 4.8 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'KJM/Krishnarajapuram',
     history: 'Connecting South India with the capital since 1999, this tri-weekly Rajdhani traverses multiple states offering scenic views.',
     crossings: ['22692 Bangalore Rajdhani (Return) at Nagpur', '12430 Lucknow Express at Bhopal'],
     overtakes: ['12621 Tamil Nadu Express at Nagpur', '12615 Grand Trunk Express at Secunderabad']
@@ -431,6 +445,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.7, cleanliness: 4.7, punctuality: 4.4, comfort: 4.8 },
     coachTypes: ['1AC', '2AC', '3AC', 'Pantry Car', 'EOG'],
     engine: 'WAP-7',
+    engineShed: 'KJM/Krishnarajapuram',
     history: 'Return service of 22691, serving since 1999.',
     crossings: ['22691 Bangalore Rajdhani at Nagpur'],
     overtakes: ['12622 Tamil Nadu Express at Nagpur']
@@ -461,6 +476,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.5, cleanliness: 4.3, punctuality: 4.3, comfort: 4.4 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'General', 'Pantry Car'],
     engine: 'WAP-4 (Primary), WAP-7 (Secondary)',
+    engineShed: 'GZB/Ghaziabad',
     history: 'One of India\'s oldest and most iconic trains running since 1965, connecting Delhi with Chennai through central India.',
     crossings: ['12622 Tamil Nadu Express (Return) at Nagpur', '22691 Bangalore Rajdhani at Bhopal'],
     overtakes: ['12615 Grand Trunk Express at Vijayawada', '12687 Chennai Express at Nagpur']
@@ -491,6 +507,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.5, cleanliness: 4.3, punctuality: 4.3, comfort: 4.4 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'General', 'Pantry Car'],
     engine: 'WAP-4 (Primary), WAP-7 (Secondary)',
+    engineShed: 'RPM/Royapuram',
     history: 'Return service of 12621, iconic train running since 1965.',
     crossings: ['12621 Tamil Nadu Express at Nagpur'],
     overtakes: ['12616 Grand Trunk Express at Vijayawada']
@@ -520,6 +537,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.2, cleanliness: 4.4, punctuality: 4.1, comfort: 4.3 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'Pantry Car'],
     engine: 'WAP-7',
+    engineShed: 'SDAH/Sealdah',
     history: 'Part of the Duronto Express series launched in 2009, offering faster connectivity with limited halts between Sealdah and New Delhi.',
     crossings: ['12260 Duronto Express (Return) at Asansol', '12313 Sealdah Rajdhani at DDU'],
     overtakes: ['13119 Katihar Express at DHN']
@@ -549,6 +567,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 4.2, cleanliness: 4.4, punctuality: 4.1, comfort: 4.3 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'Pantry Car'],
     engine: 'WAP-7',
+    engineShed: 'NDLS/New Delhi',
     history: 'Return service of 12259, part of the Duronto Express series since 2009.',
     crossings: ['12259 Duronto Express at Asansol'],
     overtakes: ['13120 Katihar Express at DHN']
@@ -575,6 +594,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 3.9, cleanliness: 4.2, punctuality: 4.2, comfort: 4.1 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'General', 'Pantry Car'],
     engine: 'WAP-4',
+    engineShed: 'GZB/Ghaziabad',
     history: 'A reliable overnight mail service connecting Delhi with Lucknow since 1984, popular among business and leisure travelers.',
     crossings: ['12429 Lucknow Mail (Return) at Kanpur', '22691 Bangalore Rajdhani at NDLS'],
     overtakes: ['12311 Kalka Mail at Kanpur']
@@ -601,6 +621,7 @@ export const sampleTrains: Train[] = [
     ratings: { railfanning: 3.9, cleanliness: 4.2, punctuality: 4.2, comfort: 4.1 },
     coachTypes: ['1AC', '2AC', '3AC', 'Sleeper', 'General', 'Pantry Car'],
     engine: 'WAP-4',
+    engineShed: 'LKO/Lucknow',
     history: 'Return service of 12430, serving since 1984.',
     crossings: ['12430 Lucknow Mail at Kanpur'],
     overtakes: ['12312 Kalka Mail at Kanpur']
