@@ -1,13 +1,10 @@
 import { Card } from '@/components/ui/card';
 import { Train, Users, MapPin, Clock } from 'lucide-react';
-import { useTrainCSVData } from '@/hooks/useTrainCSVData';
 
 export const Stats = () => {
-  const { trains, stations, dataReady } = useTrainCSVData();
-  
   const stats = [
-    { icon: Train, label: 'Active Trains', value: dataReady ? trains.length.toLocaleString() : '...', color: 'text-primary' },
-    { icon: MapPin, label: 'Railway Stations', value: dataReady ? stations.length.toLocaleString() : '...', color: 'text-secondary' },
+    { icon: Train, label: 'Active Trains', value: '12,000+', color: 'text-primary' },
+    { icon: MapPin, label: 'Railway Stations', value: '8,000+', color: 'text-secondary' },
     { icon: Users, label: 'Daily Passengers', value: '23M+', color: 'text-accent' },
     { icon: Clock, label: 'On-Time Rate', value: '95%', color: 'text-primary' },
   ];

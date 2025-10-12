@@ -3,52 +3,13 @@ import { Header } from '@/components/Header';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Train } from '@/data/trains';
+import { sampleTrains } from '@/data/trains';
 import { ArrowLeft, Clock, Calendar, MapPin, Star, Train as TrainIcon, Gauge, Sparkles, Users, History } from 'lucide-react';
-import { useTrainCSVData } from '@/hooks/useTrainCSVData';
-import { getTrainByNumber, getDaysOfWeek } from '@/services/csvData';
 
 const TrainDetails = () => {
   const { trainNumber } = useParams();
   const navigate = useNavigate();
-  const { dataReady, isLoading } = useTrainCSVData();
-  
-  const trnRow = dataReady ? getTrainByNumber(trainNumber || '') : undefined;
-  
-  const train: Train | undefined = trnRow ? {
-    id: trnRow.number,
-    number: trnRow.number,
-    name: trnRow.name,
-    from: trnRow.fromStnName,
-    fromCode: trnRow.fromStnCode,
-    to: trnRow.toStnName,
-    toCode: trnRow.toStnCode,
-    departure: 'N/A',
-    arrival: 'N/A',
-    duration: 'N/A',
-    type: 'Express',
-    days: getDaysOfWeek(parseInt(trnRow.departureDaysOfWeek) || 0),
-    classes: trnRow.classesOffered ? trnRow.classesOffered.split('') : [],
-    stops: [],
-    ratings: { railfanning: 0, cleanliness: 0, punctuality: 0, comfort: 0 },
-    coachTypes: trnRow.rake ? trnRow.rake.split(' ') : [],
-    engine: 'N/A',
-    engineShed: 'N/A',
-    history: trnRow.rakeNotes || 'N/A',
-  } : undefined;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--gradient-hero)]">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Loading train details...</p>
-          </Card>
-        </main>
-      </div>
-    );
-  }
+  const train = sampleTrains.find(t => t.number === trainNumber);
 
   if (!train) {
     return (
@@ -136,37 +97,33 @@ const TrainDetails = () => {
           <Card className="lg:col-span-2 p-6 shadow-[var(--shadow-card)] animate-fade-in">
             <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <MapPin className="h-5 w-5 text-primary" />
-              Route Information
+              Complete Journey Schedule
             </h2>
-            {train.stops.length > 0 ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-muted-foreground pb-2 border-b border-border">
-                  <div>Station</div>
-                  <div>Code</div>
-                  <div>Arrival</div>
-                  <div>Departure</div>
-                  <div>Halt</div>
-                  <div>Day</div>
-                </div>
-                {train.stops.map((stop, index) => (
-                  <div 
-                    key={index} 
-                    className="grid grid-cols-6 gap-2 py-3 border-b border-border hover:bg-accent/50 transition-colors rounded-lg px-2"
-                  >
-                    <div className="font-semibold text-foreground">{stop.name}</div>
-                    <div className="text-primary font-mono font-bold">{stop.code}</div>
-                    <div className="text-foreground">{stop.arrival}</div>
-                    <div className="text-foreground">{stop.departure}</div>
-                    <div className="text-muted-foreground">{stop.halt}</div>
-                    <div>
-                      <Badge variant="outline" className="text-xs">Day {stop.day}</Badge>
-                    </div>
-                  </div>
-                ))}
+            <div className="space-y-2">
+              <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-muted-foreground pb-2 border-b border-border">
+                <div>Station</div>
+                <div>Code</div>
+                <div>Arrival</div>
+                <div>Departure</div>
+                <div>Halt</div>
+                <div>Day</div>
               </div>
-            ) : (
-              <p className="text-muted-foreground">Detailed schedule information not available</p>
-            )}
+              {train.stops.map((stop, index) => (
+                <div 
+                  key={index} 
+                  className="grid grid-cols-6 gap-2 py-3 border-b border-border hover:bg-accent/50 transition-colors rounded-lg px-2"
+                >
+                  <div className="font-semibold text-foreground">{stop.name}</div>
+                  <div className="text-primary font-mono font-bold">{stop.code}</div>
+                  <div className="text-foreground">{stop.arrival}</div>
+                  <div className="text-foreground">{stop.departure}</div>
+                  <div className="text-muted-foreground">{stop.halt}</div>
+                  <div>
+                    <Badge variant="outline" className="text-xs">Day {stop.day}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
 
           {/* Train Info Sidebar */}
