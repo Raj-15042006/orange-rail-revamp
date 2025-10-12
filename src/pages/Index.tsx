@@ -4,10 +4,12 @@ import { SearchBar } from '@/components/SearchBar';
 import { TrainCard } from '@/components/TrainCard';
 import { Stats } from '@/components/Stats';
 import { sampleTrains } from '@/data/trains';
-import { Train, Sparkles } from 'lucide-react';
+import { Train, Sparkles, Database } from 'lucide-react';
+import { useTrainData } from '@/hooks/useTrainData';
 
 const Index = () => {
   const [filteredTrains, setFilteredTrains] = useState(sampleTrains);
+  const { isLoading: dbLoading, error: dbError, histTables, pndTables, dbReady } = useTrainData();
 
   const handleSearch = (from: string, to: string, day: string) => {
     if (!from && !to && !day) {
@@ -55,8 +57,34 @@ const Index = () => {
         </section>
 
         {/* Search Section */}
-        <section className="max-w-5xl mx-auto">
+        <section className="max-w-5xl mx-auto space-y-4">
           <SearchBar onSearch={handleSearch} />
+          
+          {dbLoading && (
+            <div className="text-center py-3 px-4 bg-primary/5 rounded-lg border border-primary/10">
+              <div className="flex items-center justify-center gap-2 text-sm text-primary">
+                <Database className="h-4 w-4 animate-pulse" />
+                <span>Loading IRCTC databases...</span>
+              </div>
+            </div>
+          )}
+          
+          {dbError && (
+            <div className="text-center py-3 px-4 bg-destructive/10 rounded-lg border border-destructive/20">
+              <p className="text-sm text-destructive">Error: {dbError}</p>
+            </div>
+          )}
+          
+          {dbReady && (
+            <div className="py-3 px-4 bg-primary/10 rounded-lg border border-primary/20">
+              <div className="flex items-center justify-center gap-2">
+                <Database className="h-4 w-4 text-primary" />
+                <p className="text-sm text-primary font-medium">
+                  ✓ Connected to IRCTC databases ({histTables.length + pndTables.length} tables loaded)
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Stats Section */}
