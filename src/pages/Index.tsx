@@ -1,35 +1,48 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { TrainCard } from '@/components/TrainCard';
 import { Stats } from '@/components/Stats';
-import { sampleTrains } from '@/data/trains';
+import { Train as TrainType } from '@/data/trains';
 import { Train, Sparkles, Database } from 'lucide-react';
-import { useTrainData } from '@/hooks/useTrainData';
+import { useTrainCSVData } from '@/hooks/useTrainCSVData';
+import { searchTrains, getDaysOfWeek, TrnRow } from '@/services/csvData';
 
 const Index = () => {
-  const [filteredTrains, setFilteredTrains] = useState(sampleTrains);
-  const { isLoading: dbLoading, error: dbError, histTables, pndTables, dbReady } = useTrainData();
+  const [searchParams, setSearchParams] = useState({ from: '', to: '', day: '' });
+  const { isLoading, error, trains, dataReady } = useTrainCSVData();
 
   const handleSearch = (from: string, to: string, day: string) => {
-    if (!from && !to && !day) {
-      setFilteredTrains(sampleTrains);
-      return;
-    }
-
-    const filtered = sampleTrains.filter(train => {
-      const matchFrom = !from || 
-        train.from.toLowerCase().includes(from.toLowerCase()) || 
-        train.fromCode.toLowerCase().includes(from.toLowerCase());
-      const matchTo = !to || 
-        train.to.toLowerCase().includes(to.toLowerCase()) || 
-        train.toCode.toLowerCase().includes(to.toLowerCase());
-      const matchDay = !day || train.days.includes(day);
-      return matchFrom && matchTo && matchDay;
-    });
-
-    setFilteredTrains(filtered);
+    setSearchParams({ from, to, day });
   };
+
+  const filteredTrains = useMemo(() => {
+    if (!dataReady) return [];
+    const results = searchTrains(searchParams.from, searchParams.to, searchParams.day);
+    return results.slice(0, 50); // Limit to 50 results for performance
+  }, [dataReady, searchParams]);
+
+  const convertToTrain = (trnRow: TrnRow): TrainType => ({
+    id: trnRow.number,
+    number: trnRow.number,
+    name: trnRow.name,
+    from: trnRow.fromStnName,
+    fromCode: trnRow.fromStnCode,
+    to: trnRow.toStnName,
+    toCode: trnRow.toStnCode,
+    departure: 'N/A',
+    arrival: 'N/A',
+    duration: 'N/A',
+    type: 'Express',
+    days: getDaysOfWeek(parseInt(trnRow.departureDaysOfWeek) || 0),
+    classes: trnRow.classesOffered ? trnRow.classesOffered.split('') : [],
+    stops: [],
+    ratings: { railfanning: 0, cleanliness: 0, punctuality: 0, comfort: 0 },
+    coachTypes: trnRow.rake ? trnRow.rake.split(' ') : [],
+    engine: 'N/A',
+    engineShed: 'N/A',
+    history: trnRow.rakeNotes || 'N/A',
+  });
 
   return (
     <div className="min-h-screen bg-[var(--gradient-hero)]">
@@ -60,27 +73,27 @@ const Index = () => {
         <section className="max-w-5xl mx-auto space-y-4">
           <SearchBar onSearch={handleSearch} />
           
-          {dbLoading && (
+          {isLoading && (
             <div className="text-center py-3 px-4 bg-primary/5 rounded-lg border border-primary/10">
               <div className="flex items-center justify-center gap-2 text-sm text-primary">
                 <Database className="h-4 w-4 animate-pulse" />
-                <span>Loading IRCTC databases...</span>
+                <span>Loading IRCTC train data...</span>
               </div>
             </div>
           )}
           
-          {dbError && (
+          {error && (
             <div className="text-center py-3 px-4 bg-destructive/10 rounded-lg border border-destructive/20">
-              <p className="text-sm text-destructive">Error: {dbError}</p>
+              <p className="text-sm text-destructive">Error: {error}</p>
             </div>
           )}
           
-          {dbReady && (
+          {dataReady && (
             <div className="py-3 px-4 bg-primary/10 rounded-lg border border-primary/20">
               <div className="flex items-center justify-center gap-2">
                 <Database className="h-4 w-4 text-primary" />
                 <p className="text-sm text-primary font-medium">
-                  ✓ Connected to IRCTC databases ({histTables.length + pndTables.length} tables loaded)
+                  ✓ Loaded {trains.length} trains from IRCTC database
                 </p>
               </div>
             </div>
@@ -106,18 +119,18 @@ const Index = () => {
             </div>
           </div>
 
-          {filteredTrains.length > 0 ? (
+          {dataReady && filteredTrains.length > 0 ? (
             <div className="space-y-4">
-              {filteredTrains.map((train, index) => (
+              {filteredTrains.map((trnRow, index) => (
                 <div
-                  key={train.id}
+                  key={trnRow.number}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <TrainCard train={train} />
+                  <TrainCard train={convertToTrain(trnRow)} />
                 </div>
               ))}
             </div>
-          ) : (
+          ) : dataReady && filteredTrains.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                 <Train className="h-8 w-8 text-muted-foreground" />
@@ -125,7 +138,7 @@ const Index = () => {
               <h3 className="text-xl font-semibold text-foreground mb-2">No trains found</h3>
               <p className="text-muted-foreground">Try adjusting your search criteria</p>
             </div>
-          )}
+          ) : null}
         </section>
       </main>
 
