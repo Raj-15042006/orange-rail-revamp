@@ -3,7 +3,7 @@ import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { TrainCard } from '@/components/TrainCard';
 import { Stats } from '@/components/Stats';
-import { sampleTrains } from '@/data/trains';
+import { sampleTrains } from '@/public/data/ir';
 import { Train, Sparkles, Database } from 'lucide-react';
 import { useTrainData } from '@/hooks/useTrainData';
 
