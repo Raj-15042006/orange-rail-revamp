@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { TrainCard } from '@/components/TrainCard';
@@ -6,7 +6,7 @@ import { Stats } from '@/components/Stats';
 import { Train as TrainType } from '@/data/trains';
 import { Train, Sparkles, Database } from 'lucide-react';
 import { useTrainCSVData } from '@/hooks/useTrainCSVData';
-import { searchTrains, getDaysOfWeek, TrnRow, SchRow, getStationByCode } from '@/services/csvData';
+import { searchTrains, getDaysOfWeek, TrnRow, SchRow, getStationByCode, getTrainSchedule } from '@/services/csvData';
 
 interface MergedTrainData extends TrnRow {
   departureTime: string;
@@ -20,34 +20,46 @@ const Index = () => {
   // load all datasets together
   const { isLoading, error, trains, schedules, dataReady } = useTrainCSVData();
 
-  const handleSearch = (from: string, to: string, day: string) => {
+  const handleSearch = useCallback((from: string, to: string, day: string) => {
     setSearchParams({ from, to, day });
-  };
+  }, []);
 
-  // merge logic - get first and last stop from schedule
+  // Optimized merge logic with indexed schedule lookups
   const filteredTrains = useMemo(() => {
     if (!dataReady) return [];
     const results = searchTrains(searchParams.from, searchParams.to, searchParams.day);
 
-    // merge with Sch.csv data (get first and last stops for departure/arrival times)
-    const merged = results.map(trnRow => {
-      const trainSchedule = schedules.filter((s: SchRow) => s.number === trnRow.number);
+    // Limit results first before processing
+    const limitedResults = results.slice(0, 50);
+
+    // merge with Sch.csv data using indexed lookups
+    const merged = limitedResults.map(trnRow => {
+      const trainSchedule = getTrainSchedule(trnRow.number);
+      
+      if (trainSchedule.length === 0) {
+        return { 
+          ...trnRow, 
+          departureTime: '-1',
+          arrivalTime: '-1',
+          stops: []
+        };
+      }
       
       // Sort by km to get first and last stops
-      const sortedSchedule = trainSchedule.sort((a, b) => parseFloat(a.km) - parseFloat(b.km));
+      const sortedSchedule = [...trainSchedule].sort((a, b) => parseFloat(a.km) - parseFloat(b.km));
       const firstStop = sortedSchedule[0];
       const lastStop = sortedSchedule[sortedSchedule.length - 1];
       
       return { 
         ...trnRow, 
-        departureTime: firstStop?.depTime || 'N/A',
-        arrivalTime: lastStop?.arrTime || 'N/A',
-        stops: trainSchedule
+        departureTime: firstStop.depTime,
+        arrivalTime: lastStop.arrTime,
+        stops: sortedSchedule
       };
     });
 
-    return merged.slice(0, 50); // Limit to 50 results for performance
-  }, [dataReady, searchParams, schedules]);
+    return merged;
+  }, [dataReady, searchParams]);
 
   // Helper function to format time from minutes to HH:MM
   const formatTime = (minutes: string | number): string => {
@@ -69,7 +81,7 @@ const Index = () => {
     return `${hours}h ${mins}m`;
   };
 
-  const convertToTrain = (mergedData: MergedTrainData): TrainType => {
+  const convertToTrain = useCallback((mergedData: MergedTrainData): TrainType => {
     const trainType = mergedData.type || 'Express';
     const validType: TrainType['type'] = 
       ['Express', 'Local', 'Rajdhani', 'Shatabdi', 'Superfast'].includes(trainType) 
@@ -111,7 +123,7 @@ const Index = () => {
       engineShed: 'N/A',
       history: mergedData.rakeNotes || 'N/A',
     };
-  };
+  }, []);
 
 
   return (

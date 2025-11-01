@@ -60,6 +60,7 @@ export interface SchRow {
 let trnData: TrnRow[] | null = null;
 let stnData: StnRow[] | null = null;
 let schData: SchRow[] | null = null;
+let scheduleIndex: Map<string, SchRow[]> | null = null;
 
 function getDaysOfWeek(dayMask: number): string[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -104,6 +105,16 @@ export async function initCSVData() {
   if (!schData) {
     schData = await loadCSV<SchRow>('/data/Sch.csv');
     console.log(`Loaded ${schData.length} schedule entries from CSV`);
+    
+    // Build index for O(1) schedule lookups
+    scheduleIndex = new Map();
+    schData.forEach(sch => {
+      if (!scheduleIndex!.has(sch.number)) {
+        scheduleIndex!.set(sch.number, []);
+      }
+      scheduleIndex!.get(sch.number)!.push(sch);
+    });
+    console.log(`Indexed ${scheduleIndex.size} train schedules`);
   }
   
   return { trnData, stnData, schData };
@@ -125,8 +136,8 @@ export function getSchData(): SchRow[] {
 }
 
 export function getTrainSchedule(trainNumber: string): SchRow[] {
-  if (!schData) return [];
-  return schData.filter(sch => sch.number === trainNumber);
+  if (!scheduleIndex) return [];
+  return scheduleIndex.get(trainNumber) || [];
 }
 
 export function getTrainByNumber(trainNumber: string): TrnRow | undefined {

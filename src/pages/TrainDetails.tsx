@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Train } from '@/data/trains';
 import { ArrowLeft, Clock, Calendar, MapPin, Star, Train as TrainIcon, Gauge, Sparkles, Users, History } from 'lucide-react';
 import { useTrainCSVData } from '@/hooks/useTrainCSVData';
-import { getTrainByNumber, getDaysOfWeek } from '@/services/csvData';
+import { getTrainByNumber, getDaysOfWeek, getTrainSchedule, getStationByCode } from '@/services/csvData';
 
 const TrainDetails = () => {
   const { trainNumber } = useParams();
@@ -14,6 +14,45 @@ const TrainDetails = () => {
   const { dataReady, isLoading } = useTrainCSVData();
   
   const trnRow = dataReady ? getTrainByNumber(trainNumber || '') : undefined;
+  
+  // Helper function to format time from minutes to HH:MM
+  const formatTime = (minutes: string | number): string => {
+    const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
+    if (isNaN(mins) || mins === -1) return 'N/A';
+    const hours = Math.floor(mins / 60).toString().padStart(2, '0');
+    const minsRemainder = (mins % 60).toString().padStart(2, '0');
+    return `${hours}:${minsRemainder}`;
+  };
+
+  // Helper function to calculate duration
+  const calculateDuration = (depTime: string, arrTime: string): string => {
+    const dep = parseInt(depTime);
+    const arr = parseInt(arrTime);
+    if (isNaN(dep) || isNaN(arr)) return 'N/A';
+    const durationMins = arr - dep;
+    const hours = Math.floor(durationMins / 60);
+    const mins = durationMins % 60;
+    return `${hours}h ${mins}m`;
+  };
+  
+  // Get schedule with optimized lookup
+  const schedule = trnRow && dataReady ? getTrainSchedule(trnRow.number) : [];
+  const sortedSchedule = schedule.length > 0 
+    ? [...schedule].sort((a, b) => parseFloat(a.km) - parseFloat(b.km))
+    : [];
+  
+  const stopsData = sortedSchedule.map(sch => {
+    const station = getStationByCode(sch.stnCode);
+    return {
+      code: sch.stnCode,
+      name: station?.name || sch.stnCode,
+      arrival: formatTime(sch.arrTime),
+      departure: formatTime(sch.depTime),
+      halt: sch.halt || '--',
+      distance: parseFloat(sch.km) || 0,
+      day: parseInt(sch.dayNum) || 0,
+    };
+  });
   
   const train: Train | undefined = trnRow ? {
     id: trnRow.number,
@@ -23,13 +62,15 @@ const TrainDetails = () => {
     fromCode: trnRow.fromStnCode,
     to: trnRow.toStnName,
     toCode: trnRow.toStnCode,
-    departure: 'N/A',
-    arrival: 'N/A',
-    duration: 'N/A',
+    departure: stopsData.length > 0 ? stopsData[0].departure : 'N/A',
+    arrival: stopsData.length > 0 ? stopsData[stopsData.length - 1].arrival : 'N/A',
+    duration: sortedSchedule.length > 1 
+      ? calculateDuration(sortedSchedule[0].depTime, sortedSchedule[sortedSchedule.length - 1].arrTime)
+      : 'N/A',
     type: 'Express',
     days: getDaysOfWeek(parseInt(trnRow.departureDaysOfWeek) || 0),
     classes: trnRow.classesOffered ? trnRow.classesOffered.split('') : [],
-    stops: [],
+    stops: stopsData,
     ratings: { railfanning: 0, cleanliness: 0, punctuality: 0, comfort: 0 },
     coachTypes: trnRow.rake ? trnRow.rake.split(' ') : [],
     engine: 'N/A',

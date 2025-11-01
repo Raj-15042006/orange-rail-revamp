@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, ArrowRight, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface TrainCardProps {
   train: Train;
@@ -78,13 +79,14 @@ export const TrainCard = ({ train }: TrainCardProps) => {
 
           {/* Action Button */}
           <div className="flex flex-col gap-2 md:items-end">
-            <Button 
-              variant="default" 
-              className="w-full md:w-auto"
-              onClick={() => window.location.href = `/train/${train.number}`}
-            >
-              View Full Details
-            </Button>
+            <Link to={`/train/${train.number}`}>
+              <Button 
+                variant="default" 
+                className="w-full md:w-auto"
+              >
+                View Full Details
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -12,10 +12,28 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [selectedDay, setSelectedDay] = useState('');
+  const debounceTimerRef = useRef<NodeJS.Timeout>();
 
   const handleSearch = () => {
     onSearch(from, to, selectedDay);
   };
+
+  // Debounced auto-search when inputs change
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      onSearch(from, to, selectedDay);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [from, to, selectedDay, onSearch]);
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
