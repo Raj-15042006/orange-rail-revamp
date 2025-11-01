@@ -47,8 +47,19 @@ export interface StnRow {
   updatedOnNum: string;
 }
 
+export interface SchRow {
+  number: string;
+  stnCode: string;
+  km: string;
+  arrTime: string;
+  depTime: string;
+  halt: string;
+  dayNum: string;
+}
+
 let trnData: TrnRow[] | null = null;
 let stnData: StnRow[] | null = null;
+let schData: SchRow[] | null = null;
 
 function getDaysOfWeek(dayMask: number): string[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -90,7 +101,12 @@ export async function initCSVData() {
     console.log(`Loaded ${stnData.length} stations from CSV`);
   }
   
-  return { trnData, stnData };
+  if (!schData) {
+    schData = await loadCSV<SchRow>('/data/Sch.csv');
+    console.log(`Loaded ${schData.length} schedule entries from CSV`);
+  }
+  
+  return { trnData, stnData, schData };
 }
 
 export function getTrnData(): TrnRow[] {
@@ -101,6 +117,16 @@ export function getTrnData(): TrnRow[] {
 export function getStnData(): StnRow[] {
   if (!stnData) throw new Error('Station data not initialized');
   return stnData;
+}
+
+export function getSchData(): SchRow[] {
+  if (!schData) throw new Error('Schedule data not initialized');
+  return schData;
+}
+
+export function getTrainSchedule(trainNumber: string): SchRow[] {
+  if (!schData) return [];
+  return schData.filter(sch => sch.number === trainNumber);
 }
 
 export function getTrainByNumber(trainNumber: string): TrnRow | undefined {

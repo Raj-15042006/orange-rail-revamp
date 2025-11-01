@@ -6,59 +6,113 @@ import { Stats } from '@/components/Stats';
 import { Train as TrainType } from '@/data/trains';
 import { Train, Sparkles, Database } from 'lucide-react';
 import { useTrainCSVData } from '@/hooks/useTrainCSVData';
-import { useScheduleCSVData } from '@/hooks/useScheduleCSVData'; // NEW
-import { searchTrains, getDaysOfWeek, TrnRow, SchRow } from '@/services/csvData'; // include SchRow type
+import { searchTrains, getDaysOfWeek, TrnRow, SchRow, getStationByCode } from '@/services/csvData';
+
+interface MergedTrainData extends TrnRow {
+  departureTime: string;
+  arrivalTime: string;
+  stops: SchRow[];
+}
 
 const Index = () => {
   const [searchParams, setSearchParams] = useState({ from: '', to: '', day: '' });
   
-  // load both datasets
-  const { isLoading: trainLoading, error: trainError, trains, dataReady: trainReady } = useTrainCSVData();
-  const { isLoading: schLoading, error: schError, schedules, dataReady: schReady } = useScheduleCSVData();
+  // load all datasets together
+  const { isLoading, error, trains, schedules, dataReady } = useTrainCSVData();
 
   const handleSearch = (from: string, to: string, day: string) => {
     setSearchParams({ from, to, day });
   };
 
-  // merge logic
+  // merge logic - get first and last stop from schedule
   const filteredTrains = useMemo(() => {
-    if (!trainReady || !schReady) return [];
+    if (!dataReady) return [];
     const results = searchTrains(searchParams.from, searchParams.to, searchParams.day);
 
-    // merge with Sch.csv data (matching by train number)
+    // merge with Sch.csv data (get first and last stops for departure/arrival times)
     const merged = results.map(trnRow => {
-      const schRow = schedules.find((s: SchRow) => s.number === trnRow.number);
-      return { ...trnRow, ...schRow };
+      const trainSchedule = schedules.filter((s: SchRow) => s.number === trnRow.number);
+      
+      // Sort by km to get first and last stops
+      const sortedSchedule = trainSchedule.sort((a, b) => parseFloat(a.km) - parseFloat(b.km));
+      const firstStop = sortedSchedule[0];
+      const lastStop = sortedSchedule[sortedSchedule.length - 1];
+      
+      return { 
+        ...trnRow, 
+        departureTime: firstStop?.depTime || 'N/A',
+        arrivalTime: lastStop?.arrTime || 'N/A',
+        stops: trainSchedule
+      };
     });
 
     return merged.slice(0, 50); // Limit to 50 results for performance
-  }, [trainReady, schReady, searchParams, schedules]);
+  }, [dataReady, searchParams, schedules]);
 
-  const convertToTrain = (trnRow: TrnRow & Partial<SchRow>): TrainType => ({
-    id: trnRow.number,
-    number: trnRow.number,
-    name: trnRow.name,
-    from: trnRow.fromStnName,
-    fromCode: trnRow.fromStnCode,
-    to: trnRow.toStnName,
-    toCode: trnRow.toStnCode,
-    departure: trnRow.departureTime || 'N/A',
-    arrival: trnRow.arrivalTime || 'N/A',
-    duration: trnRow.duration || 'N/A',
-    type: trnRow.type || 'Express',
-    days: getDaysOfWeek(parseInt(trnRow.departureDaysOfWeek) || 0),
-    classes: trnRow.classesOffered ? trnRow.classesOffered.split('') : [],
-    stops: trnRow.stops || [],
-    ratings: { railfanning: 0, cleanliness: 0, punctuality: 0, comfort: 0 },
-    coachTypes: trnRow.rake ? trnRow.rake.split(' ') : [],
-    engine: trnRow.engine || 'N/A',
-    engineShed: trnRow.engineShed || 'N/A',
-    history: trnRow.rakeNotes || 'N/A',
-  });
+  // Helper function to format time from minutes to HH:MM
+  const formatTime = (minutes: string | number): string => {
+    const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
+    if (isNaN(mins) || mins === -1) return 'N/A';
+    const hours = Math.floor(mins / 60).toString().padStart(2, '0');
+    const minsRemainder = (mins % 60).toString().padStart(2, '0');
+    return `${hours}:${minsRemainder}`;
+  };
 
-  const isLoading = trainLoading || schLoading;
-  const error = trainError || schError;
-  const dataReady = trainReady && schReady;
+  // Helper function to calculate duration
+  const calculateDuration = (depTime: string, arrTime: string): string => {
+    const dep = parseInt(depTime);
+    const arr = parseInt(arrTime);
+    if (isNaN(dep) || isNaN(arr)) return 'N/A';
+    const durationMins = arr - dep;
+    const hours = Math.floor(durationMins / 60);
+    const mins = durationMins % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const convertToTrain = (mergedData: MergedTrainData): TrainType => {
+    const trainType = mergedData.type || 'Express';
+    const validType: TrainType['type'] = 
+      ['Express', 'Local', 'Rajdhani', 'Shatabdi', 'Superfast'].includes(trainType) 
+        ? trainType as TrainType['type']
+        : 'Express';
+
+    // Convert schedule stops to station data
+    const stopsData = mergedData.stops.map(sch => {
+      const station = getStationByCode(sch.stnCode);
+      return {
+        code: sch.stnCode,
+        name: station?.name || sch.stnCode,
+        arrival: formatTime(sch.arrTime),
+        departure: formatTime(sch.depTime),
+        halt: sch.halt || '--',
+        distance: parseFloat(sch.km) || 0,
+        day: parseInt(sch.dayNum) || 0,
+      };
+    });
+
+    return {
+      id: mergedData.number,
+      number: mergedData.number,
+      name: mergedData.name,
+      from: mergedData.fromStnName,
+      fromCode: mergedData.fromStnCode,
+      to: mergedData.toStnName,
+      toCode: mergedData.toStnCode,
+      departure: formatTime(mergedData.departureTime),
+      arrival: formatTime(mergedData.arrivalTime),
+      duration: calculateDuration(mergedData.departureTime, mergedData.arrivalTime),
+      type: validType,
+      days: getDaysOfWeek(parseInt(mergedData.departureDaysOfWeek) || 0),
+      classes: mergedData.classesOffered ? mergedData.classesOffered.split('') : [],
+      stops: stopsData,
+      ratings: { railfanning: 0, cleanliness: 0, punctuality: 0, comfort: 0 },
+      coachTypes: mergedData.rake ? mergedData.rake.split(' ') : [],
+      engine: 'N/A',
+      engineShed: 'N/A',
+      history: mergedData.rakeNotes || 'N/A',
+    };
+  };
+
 
   return (
     <div className="min-h-screen bg-[var(--gradient-hero)]">
