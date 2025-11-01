@@ -108,13 +108,32 @@ export async function initCSVData() {
     
     // Build index for O(1) schedule lookups
     scheduleIndex = new Map();
-    schData.forEach(sch => {
-      if (!scheduleIndex!.has(sch.number)) {
-        scheduleIndex!.set(sch.number, []);
+    schData.forEach((sch, index) => {
+      // Trim whitespace from train number as CSV might have spacing issues
+      const trainNumber = String(sch.number).trim();
+      
+      if (!trainNumber) {
+        if (index < 5) console.warn('Empty train number at index', index, sch);
+        return;
       }
-      scheduleIndex!.get(sch.number)!.push(sch);
+      
+      if (!scheduleIndex!.has(trainNumber)) {
+        scheduleIndex!.set(trainNumber, []);
+      }
+      scheduleIndex!.get(trainNumber)!.push(sch);
     });
-    console.log(`Indexed ${scheduleIndex.size} train schedules`);
+    console.log(`Indexed ${scheduleIndex.size} train schedules from ${schData.length} entries`);
+    
+    // Debug: check if specific train exists
+    const sample = scheduleIndex.get('12971');
+    if (sample) {
+      console.log(`Train 12971 has ${sample.length} stops`);
+    } else {
+      console.warn('Train 12971 not found in index');
+      // Check if data exists with different format
+      const found = schData.find(s => String(s.number).includes('12971'));
+      if (found) console.log('Found 12971 in raw data:', found);
+    }
   }
   
   return { trnData, stnData, schData };
@@ -136,8 +155,19 @@ export function getSchData(): SchRow[] {
 }
 
 export function getTrainSchedule(trainNumber: string): SchRow[] {
-  if (!scheduleIndex) return [];
-  return scheduleIndex.get(trainNumber) || [];
+  if (!scheduleIndex) {
+    console.warn('Schedule index not initialized');
+    return [];
+  }
+  
+  const trimmedNumber = String(trainNumber).trim();
+  const schedule = scheduleIndex.get(trimmedNumber);
+  
+  if (!schedule) {
+    console.warn(`No schedule found for train ${trimmedNumber}. Index has ${scheduleIndex.size} trains`);
+  }
+  
+  return schedule || [];
 }
 
 export function getTrainByNumber(trainNumber: string): TrnRow | undefined {
