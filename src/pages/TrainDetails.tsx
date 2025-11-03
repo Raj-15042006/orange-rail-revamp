@@ -34,6 +34,14 @@ const TrainDetails = () => {
     const mins = durationMins % 60;
     return `${hours}h ${mins}m`;
   };
+
+  // Helper function to calculate halt time
+  const calculateHalt = (arrTime: string, depTime: string): string => {
+    const arr = parseInt(arrTime) || 0;
+    const dep = parseInt(depTime) || 0;
+    const haltMinutes = dep - arr;
+    return haltMinutes > 0 ? `${haltMinutes} min` : '--';
+  };
   
   // Get schedule with optimized lookup
   const schedule = trnRow && dataReady ? getTrainSchedule(trnRow.number) : [];
@@ -48,7 +56,7 @@ const TrainDetails = () => {
       name: station?.name || sch.stnCode,
       arrival: formatTime(sch.arrTime),
       departure: formatTime(sch.depTime),
-      halt: sch.halt || '--',
+      halt: calculateHalt(sch.arrTime, sch.depTime),
       distance: parseFloat(sch.km) || 0,
       day: parseInt(sch.dayNum) || 0,
     };

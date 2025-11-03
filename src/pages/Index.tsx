@@ -81,6 +81,13 @@ const Index = () => {
     return `${hours}h ${mins}m`;
   };
 
+  const calculateHalt = (arrTime: string, depTime: string): string => {
+    const arr = parseInt(arrTime) || 0;
+    const dep = parseInt(depTime) || 0;
+    const haltMinutes = dep - arr;
+    return haltMinutes > 0 ? `${haltMinutes} min` : '--';
+  };
+
   const convertToTrain = useCallback((mergedData: MergedTrainData): TrainType => {
     const trainType = mergedData.type || 'Express';
     const validType: TrainType['type'] = 
@@ -96,7 +103,7 @@ const Index = () => {
         name: station?.name || sch.stnCode,
         arrival: formatTime(sch.arrTime),
         departure: formatTime(sch.depTime),
-        halt: sch.halt || '--',
+        halt: calculateHalt(sch.arrTime, sch.depTime),
         distance: parseFloat(sch.km) || 0,
         day: parseInt(sch.dayNum) || 0,
       };

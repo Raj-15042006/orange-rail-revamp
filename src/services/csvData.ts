@@ -48,13 +48,16 @@ export interface StnRow {
 }
 
 export interface SchRow {
-  number: string;
+  trnNumber: string;
   stnCode: string;
-  km: string;
+  type: string;
+  note: string;
+  trackType: string;
   arrTime: string;
   depTime: string;
-  halt: string;
   dayNum: string;
+  pfNum: string;
+  km: string;
 }
 
 let trnData: TrnRow[] | null = null;
@@ -110,7 +113,7 @@ export async function initCSVData() {
     scheduleIndex = new Map();
     schData.forEach((sch, index) => {
       // Trim whitespace from train number as CSV might have spacing issues
-      const trainNumber = String(sch.number).trim();
+      const trainNumber = String(sch.trnNumber).trim();
       
       if (!trainNumber) {
         if (index < 5) console.warn('Empty train number at index', index, sch);
@@ -131,7 +134,7 @@ export async function initCSVData() {
     } else {
       console.warn('Train 12971 not found in index');
       // Check if data exists with different format
-      const found = schData.find(s => String(s.number).includes('12971'));
+      const found = schData.find(s => String(s.trnNumber).includes('12971'));
       if (found) console.log('Found 12971 in raw data:', found);
     }
   }
