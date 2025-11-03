@@ -170,19 +170,21 @@ const TrainDetails = () => {
           </div>
         </Card>
 
-        {/* Station Ratings */}
-        <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-primary" />
-            Station Ratings & Experience
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <RatingMeter label="Railfanning" value={train.ratings.railfanning} icon={Sparkles} />
-            <RatingMeter label="Cleanliness" value={train.ratings.cleanliness} icon={Sparkles} />
-            <RatingMeter label="Punctuality" value={train.ratings.punctuality} icon={Clock} />
-            <RatingMeter label="Comfort" value={train.ratings.comfort} icon={Users} />
-          </div>
-        </Card>
+        {/* Station Ratings - Hidden as no data available */}
+        {false && (
+          <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
+            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Star className="h-5 w-5 text-primary" />
+              Station Ratings & Experience
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <RatingMeter label="Railfanning" value={train.ratings.railfanning} icon={Sparkles} />
+              <RatingMeter label="Cleanliness" value={train.ratings.cleanliness} icon={Sparkles} />
+              <RatingMeter label="Punctuality" value={train.ratings.punctuality} icon={Clock} />
+              <RatingMeter label="Comfort" value={train.ratings.comfort} icon={Users} />
+            </div>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Train Schedule */}
