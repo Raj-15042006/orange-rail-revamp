@@ -60,10 +60,21 @@ export interface SchRow {
   km: string;
 }
 
+export interface XORow {
+  trnNumber: string;
+  stnCode: string;
+  trnNumberXO: string;
+  type: string;
+  departureDaysOfWeek: string;
+  updatedOnNum: string;
+}
+
 let trnData: TrnRow[] | null = null;
 let stnData: StnRow[] | null = null;
 let schData: SchRow[] | null = null;
+let xoData: XORow[] | null = null;
 let scheduleIndex: Map<string, SchRow[]> | null = null;
+let xoIndex: Map<string, XORow[]> | null = null;
 
 function getDaysOfWeek(dayMask: number): string[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -138,8 +149,26 @@ export async function initCSVData() {
       if (found) console.log('Found 12971 in raw data:', found);
     }
   }
+
+  if (!xoData) {
+    xoData = await loadCSV<XORow>('/data/XO.csv');
+    console.log(`Loaded ${xoData.length} crossing/overtake entries from CSV`);
+    
+    // Build index for O(1) crossings/overtakes lookups
+    xoIndex = new Map();
+    xoData.forEach((xo) => {
+      const trainNumber = String(xo.trnNumber).trim();
+      if (!trainNumber) return;
+      
+      if (!xoIndex!.has(trainNumber)) {
+        xoIndex!.set(trainNumber, []);
+      }
+      xoIndex!.get(trainNumber)!.push(xo);
+    });
+    console.log(`Indexed ${xoIndex.size} train crossings/overtakes`);
+  }
   
-  return { trnData, stnData, schData };
+  return { trnData, stnData, schData, xoData };
 }
 
 export function getTrnData(): TrnRow[] {
@@ -155,6 +184,21 @@ export function getStnData(): StnRow[] {
 export function getSchData(): SchRow[] {
   if (!schData) throw new Error('Schedule data not initialized');
   return schData;
+}
+
+export function getXOData(): XORow[] {
+  if (!xoData) throw new Error('XO data not initialized');
+  return xoData;
+}
+
+export function getTrainXO(trainNumber: string): XORow[] {
+  if (!xoIndex) {
+    console.warn('XO index not initialized');
+    return [];
+  }
+  
+  const trimmedNumber = String(trainNumber).trim();
+  return xoIndex.get(trimmedNumber) || [];
 }
 
 export function getTrainSchedule(trainNumber: string): SchRow[] {

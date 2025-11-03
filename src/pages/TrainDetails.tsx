@@ -3,10 +3,11 @@ import { Header } from '@/components/Header';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScheduleTable } from '@/components/ScheduleTable';
 import { Train } from '@/data/trains';
 import { ArrowLeft, Clock, Calendar, MapPin, Star, Train as TrainIcon, Gauge, Sparkles, Users, History } from 'lucide-react';
 import { useTrainCSVData } from '@/hooks/useTrainCSVData';
-import { getTrainByNumber, getDaysOfWeek, getTrainSchedule, getStationByCode } from '@/services/csvData';
+import { getTrainByNumber, getDaysOfWeek, getTrainSchedule, getStationByCode, getTrainXO } from '@/services/csvData';
 
 const TrainDetails = () => {
   const { trainNumber } = useParams();
@@ -48,6 +49,9 @@ const TrainDetails = () => {
   const sortedSchedule = schedule.length > 0 
     ? [...schedule].sort((a, b) => parseFloat(a.km) - parseFloat(b.km))
     : [];
+
+  // Get crossings and overtakes
+  const trainXO = trnRow && dataReady ? getTrainXO(trnRow.number) : [];
   
   const stopsData = sortedSchedule.map(sch => {
     const station = getStationByCode(sch.stnCode);
@@ -188,31 +192,11 @@ const TrainDetails = () => {
               Route Information
             </h2>
             {train.stops.length > 0 ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-muted-foreground pb-2 border-b border-border">
-                  <div>Station</div>
-                  <div>Code</div>
-                  <div>Arrival</div>
-                  <div>Departure</div>
-                  <div>Halt</div>
-                  <div>Day</div>
-                </div>
-                {train.stops.map((stop, index) => (
-                  <div 
-                    key={index} 
-                    className="grid grid-cols-6 gap-2 py-3 border-b border-border hover:bg-accent/50 transition-colors rounded-lg px-2"
-                  >
-                    <div className="font-semibold text-foreground">{stop.name}</div>
-                    <div className="text-primary font-mono font-bold">{stop.code}</div>
-                    <div className="text-foreground">{stop.arrival}</div>
-                    <div className="text-foreground">{stop.departure}</div>
-                    <div className="text-muted-foreground">{stop.halt}</div>
-                    <div>
-                      <Badge variant="outline" className="text-xs">Day {stop.day}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ScheduleTable 
+                stops={train.stops} 
+                rawSchedule={sortedSchedule}
+                crossingsData={trainXO}
+              />
             ) : (
               <p className="text-muted-foreground">Detailed schedule information not available</p>
             )}
@@ -252,30 +236,60 @@ const TrainDetails = () => {
                 <TrainIcon className="h-5 w-5 text-primary" />
                 Coach Composition
               </h3>
-              <div className="space-y-2">
-                {train.coachTypes.map((coach, idx) => (
-                  <div key={idx} className="text-sm text-foreground bg-accent/50 px-3 py-2 rounded">
-                    {coach}
-                  </div>
-                ))}
-              </div>
+              {trnRow?.rake ? (
+                <div className="space-y-2">
+                  {trnRow.rake.split(' ').map((coach, idx) => (
+                    <div key={idx} className="text-sm text-foreground bg-accent/50 px-3 py-2 rounded">
+                      {coach}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No coach information available</p>
+              )}
             </Card>
 
-            {/* Engine */}
+            {/* Zone & Type */}
             <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
               <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
                 <Gauge className="h-5 w-5 text-primary" />
-                Locomotive Details
+                Train Details
               </h3>
               <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Engine</p>
-                  <p className="text-sm text-foreground font-medium">{train.engine}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Home Shed</p>
-                  <p className="text-sm text-foreground font-medium">{train.engineShed}</p>
-                </div>
+                {trnRow?.zone && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Zone</p>
+                    <Badge className="bg-primary text-primary-foreground">{trnRow.zone}</Badge>
+                  </div>
+                )}
+                {trnRow?.type && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Train Type</p>
+                    <p className="text-sm text-foreground font-medium">{trnRow.type}</p>
+                  </div>
+                )}
+                {trnRow?.rakeType && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Rake Type</p>
+                    <p className="text-sm text-foreground font-medium">{trnRow.rakeType}</p>
+                  </div>
+                )}
+                {trnRow?.pantry && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Pantry</p>
+                    <Badge variant={trnRow.pantry === 'Y' ? 'default' : 'secondary'}>
+                      {trnRow.pantry === 'Y' ? 'Available' : 'Not Available'}
+                    </Badge>
+                  </div>
+                )}
+                {trnRow?.linenBedding && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Linen & Bedding</p>
+                    <Badge variant={trnRow.linenBedding === 'Y' ? 'default' : 'secondary'}>
+                      {trnRow.linenBedding === 'Y' ? 'Available' : 'Not Available'}
+                    </Badge>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
@@ -285,47 +299,38 @@ const TrainDetails = () => {
         <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
             <History className="h-5 w-5 text-primary" />
-            Train History
+            Train History & Notes
           </h2>
-          <p className="text-foreground leading-relaxed">{train.history}</p>
-        </Card>
-
-        {/* Crossings & Overtakes */}
-        {(train.crossings || train.overtakes) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {train.crossings && train.crossings.length > 0 && (
-              <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
-                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Train Crossings
-                </h3>
-                <ul className="space-y-2">
-                  {train.crossings.map((crossing, idx) => (
-                    <li key={idx} className="text-sm text-foreground bg-accent/50 px-3 py-2 rounded">
-                      {crossing}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+          <div className="space-y-4">
+            {trnRow?.rakeNotes && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Rake Notes</p>
+                <p className="text-foreground leading-relaxed">{trnRow.rakeNotes}</p>
+              </div>
             )}
-
-            {train.overtakes && train.overtakes.length > 0 && (
-              <Card className="p-6 shadow-[var(--shadow-card)] animate-fade-in">
-                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <TrainIcon className="h-5 w-5 text-primary" />
-                  Train Overtakes
-                </h3>
-                <ul className="space-y-2">
-                  {train.overtakes.map((overtake, idx) => (
-                    <li key={idx} className="text-sm text-foreground bg-accent/50 px-3 py-2 rounded">
-                      {overtake}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+            {trnRow?.pantryNote && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Pantry Information</p>
+                <p className="text-foreground leading-relaxed">{trnRow.pantryNote}</p>
+              </div>
+            )}
+            {trnRow?.linenBeddingDet && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Linen & Bedding</p>
+                <p className="text-foreground leading-relaxed">{trnRow.linenBeddingDet}</p>
+              </div>
+            )}
+            {trnRow?.offName && trnRow.offName !== trnRow.name && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Official Name</p>
+                <p className="text-foreground leading-relaxed">{trnRow.offName}</p>
+              </div>
+            )}
+            {!trnRow?.rakeNotes && !trnRow?.pantryNote && !trnRow?.linenBeddingDet && (
+              <p className="text-muted-foreground">No additional information available</p>
             )}
           </div>
-        )}
+        </Card>
       </main>
 
       {/* Footer */}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { initCSVData, TrnRow, StnRow, SchRow } from '@/services/csvData';
+import { initCSVData, TrnRow, StnRow, SchRow, XORow } from '@/services/csvData';
 
 export function useTrainCSVData() {
   const [isLoading, setIsLoading] = useState(true);
@@ -7,17 +7,19 @@ export function useTrainCSVData() {
   const [trains, setTrains] = useState<TrnRow[]>([]);
   const [stations, setStations] = useState<StnRow[]>([]);
   const [schedules, setSchedules] = useState<SchRow[]>([]);
+  const [crossings, setCrossings] = useState<XORow[]>([]);
   const [dataReady, setDataReady] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
         setIsLoading(true);
-        const { trnData, stnData, schData } = await initCSVData();
+        const { trnData, stnData, schData, xoData } = await initCSVData();
         
         setTrains(trnData);
         setStations(stnData);
         setSchedules(schData);
+        setCrossings(xoData);
         setDataReady(true);
       } catch (err) {
         console.error('Failed to load CSV data:', err);
@@ -30,5 +32,5 @@ export function useTrainCSVData() {
     loadData();
   }, []);
 
-  return { isLoading, error, trains, stations, schedules, dataReady };
+  return { isLoading, error, trains, stations, schedules, crossings, dataReady };
 }
