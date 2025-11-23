@@ -16,13 +16,17 @@ const TrainDetails = () => {
   
   const trnRow = dataReady ? getTrainByNumber(trainNumber || '') : undefined;
   
-  // Helper function to format time from minutes to HH:MM
+  // Helper function to format time from minutes to 24-hour HH:MM format
   const formatTime = (minutes: string | number): string => {
     const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     if (isNaN(mins) || mins === -1) return 'N/A';
-    const hours = Math.floor(mins / 60).toString().padStart(2, '0');
-    const minsRemainder = (mins % 60).toString().padStart(2, '0');
-    return `${hours}:${minsRemainder}`;
+    
+    // Handle times that go past midnight (>1440 minutes)
+    const normalizedMins = mins % 1440;
+    const hours = Math.floor(normalizedMins / 60);
+    const minsRemainder = normalizedMins % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minsRemainder.toString().padStart(2, '0')}`;
   };
 
   // Helper function to calculate duration
