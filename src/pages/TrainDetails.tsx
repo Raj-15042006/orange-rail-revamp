@@ -243,12 +243,40 @@ const TrainDetails = () => {
                 Coach Composition
               </h3>
               {trnRow?.rake ? (
-                <div className="space-y-2">
-                  {trnRow.rake.split(' ').map((coach, idx) => (
-                    <div key={idx} className="text-sm text-foreground bg-accent/50 px-3 py-2 rounded">
-                      {coach}
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {trnRow.rake.split(' ').map((coach, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        {coach}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left p-2 font-semibold text-foreground">Code</th>
+                          <th className="text-left p-2 font-semibold text-foreground">Coach Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        <tr><td className="p-2 font-mono font-semibold text-primary">EOG</td><td className="p-2 text-muted-foreground">Generator Car</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">SLR</td><td className="p-2 text-muted-foreground">Seating cum Luggage Rake</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">S1-S10</td><td className="p-2 text-muted-foreground">Sleeper Class</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">GS</td><td className="p-2 text-muted-foreground">General Seating</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">H1-H2</td><td className="p-2 text-muted-foreground">First AC (1A)</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">B1-B8</td><td className="p-2 text-muted-foreground">AC 2 Tier (2A)</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">A1-A8</td><td className="p-2 text-muted-foreground">AC 3 Tier (3A)</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">CC</td><td className="p-2 text-muted-foreground">Chair Car</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">ACC</td><td className="p-2 text-muted-foreground">AC Chair Car</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">EC</td><td className="p-2 text-muted-foreground">Executive Chair Car</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">AE</td><td className="p-2 text-muted-foreground">AC 3 Tier Economy (3E)</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">BE</td><td className="p-2 text-muted-foreground">AC 2 Tier Economy (2E)</td></tr>
+                        <tr><td className="p-2 font-mono font-semibold text-primary">PC</td><td className="p-2 text-muted-foreground">Pantry Car</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No coach information available</p>
@@ -277,7 +305,23 @@ const TrainDetails = () => {
                 {trnRow?.rakeType && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Rake Type</p>
-                    <p className="text-sm text-foreground font-medium">{trnRow.rakeType}</p>
+                    <Badge variant="outline" className="font-semibold">
+                      {trnRow.rakeType}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {trnRow.rakeType.includes('LHB') && '• Linke Hofmann Busch (Modern)'}
+                      {trnRow.rakeType.includes('ICF') && '• Integral Coach Factory (Conventional)'}
+                      {trnRow.rakeType.includes('MEMU') && '• Mainline Electric Multiple Unit'}
+                      {trnRow.rakeType.includes('DEMU') && '• Diesel Electric Multiple Unit'}
+                      {trnRow.rakeType.includes('Duronto') && '• Non-stop Premium Service'}
+                      {trnRow.rakeType.includes('Rajdhani') && '• Premium Long-Distance AC Service'}
+                      {trnRow.rakeType.includes('Shatabdi') && '• Premium Day Train Service'}
+                      {trnRow.rakeType.includes('Antyodaya') && '• Unreserved Long-Distance Service'}
+                      {trnRow.rakeType.includes('Garib Rath') && '• Budget AC Service'}
+                      {trnRow.rakeType.includes('Humsafar') && '• Fully AC 3-Tier Service'}
+                      {trnRow.rakeType.includes('Tejas') && '• Premium Service with Modern Amenities'}
+                      {trnRow.rakeType.includes('Vande Bharat') && '• Semi High-Speed Train-18/20'}
+                    </p>
                   </div>
                 )}
                 {trnRow?.pantry && (
