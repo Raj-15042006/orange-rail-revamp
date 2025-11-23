@@ -36,10 +36,16 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
     const nextHalt = haltStations[idx + 1];
     const nextIdx = nextHalt ? nextHalt.originalIndex : stops.length;
     
-    const intermediates = stops.slice(currentIdx + 1, nextIdx).map((stop, i) => ({
-      ...stop,
-      originalIndex: currentIdx + 1 + i,
-    }));
+    const intermediates = stops.slice(currentIdx + 1, nextIdx).map((stop, i) => {
+      const intermediateStop = stops[currentIdx + 1 + i];
+      // Get crossings/overtakes for each intermediate station
+      const xoInfo = crossingsData.filter(xo => xo.stnCode === intermediateStop.code);
+      return {
+        ...intermediateStop,
+        originalIndex: currentIdx + 1 + i,
+        xoInfo,
+      };
+    });
 
     // Get crossings/overtakes for this halt station
     const xoInfo = crossingsData.filter(xo => xo.stnCode === halt.code);
@@ -65,6 +71,18 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
     if (type === 'C') return { label: 'Crossing', icon: ArrowLeftRight, color: 'bg-blue-500' };
     if (type === 'O') return { label: 'Overtake', icon: Zap, color: 'bg-orange-500' };
     return { label: 'XO', icon: ArrowLeftRight, color: 'bg-gray-500' };
+  };
+
+  const getDaysFromMask = (dayMask: string): string => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const mask = parseInt(dayMask) || 0;
+    const activeDays: string[] = [];
+    for (let i = 0; i < days.length; i++) {
+      if ((mask >> i) & 1) {
+        activeDays.push(days[i]);
+      }
+    }
+    return activeDays.length === 7 ? 'Daily' : activeDays.join(', ');
   };
 
   return (
@@ -100,13 +118,17 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
               {section.xoInfo.map((xo, idx) => {
                 const xoType = getXOTypeLabel(xo.type);
                 const XOIcon = xoType.icon;
+                const runDays = getDaysFromMask(xo.departureDaysOfWeek);
                 return (
                   <div 
                     key={idx} 
-                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${xoType.color} text-white`}
+                    className={`flex flex-col gap-0.5 text-xs px-2 py-1.5 rounded ${xoType.color} text-white`}
                   >
-                    <XOIcon className="h-3 w-3" />
-                    <span>{xoType.label}: {xo.trnNumberXO}</span>
+                    <div className="flex items-center gap-1">
+                      <XOIcon className="h-3 w-3" />
+                      <span className="font-semibold">{xoType.label}: Train #{xo.trnNumberXO}</span>
+                    </div>
+                    <span className="text-[10px] opacity-90">On: {runDays}</span>
                   </div>
                 );
               })}
@@ -133,19 +155,43 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
               {expandedSections.has(sectionIdx) && (
                 <div className="ml-6 space-y-1 animate-fade-in">
                   {section.intermediates.map((intermediate, idx) => (
-                    <div 
-                      key={idx} 
-                      className="grid grid-cols-7 gap-2 py-2 border-b border-border/50 hover:bg-accent/30 transition-colors rounded px-2 text-sm"
-                    >
-                      <div className="text-muted-foreground">{intermediate.name}</div>
-                      <div className="text-muted-foreground font-mono">{intermediate.code}</div>
-                      <div className="text-muted-foreground font-mono tabular-nums">{intermediate.arrival}</div>
-                      <div className="text-muted-foreground font-mono tabular-nums">{intermediate.departure}</div>
-                      <div className="text-muted-foreground/70">{intermediate.halt}</div>
-                      <div className="text-muted-foreground/70">{intermediate.distance.toFixed(1)}</div>
-                      <div>
-                        <Badge variant="outline" className="text-xs opacity-70">Day {intermediate.day}</Badge>
+                    <div key={idx} className="space-y-1">
+                      <div 
+                        className="grid grid-cols-7 gap-2 py-2 border-b border-border/50 hover:bg-accent/30 transition-colors rounded px-2 text-sm"
+                      >
+                        <div className="text-muted-foreground">{intermediate.name}</div>
+                        <div className="text-muted-foreground font-mono">{intermediate.code}</div>
+                        <div className="text-muted-foreground font-mono tabular-nums">{intermediate.arrival}</div>
+                        <div className="text-muted-foreground font-mono tabular-nums">{intermediate.departure}</div>
+                        <div className="text-muted-foreground/70">{intermediate.halt}</div>
+                        <div className="text-muted-foreground/70">{intermediate.distance.toFixed(1)}</div>
+                        <div>
+                          <Badge variant="outline" className="text-xs opacity-70">Day {intermediate.day}</Badge>
+                        </div>
                       </div>
+                      
+                      {/* XO Info for intermediate stations */}
+                      {intermediate.xoInfo && intermediate.xoInfo.length > 0 && (
+                        <div className="ml-4 mb-2 flex flex-wrap gap-2">
+                          {intermediate.xoInfo.map((xo, xoIdx) => {
+                            const xoType = getXOTypeLabel(xo.type);
+                            const XOIcon = xoType.icon;
+                            const runDays = getDaysFromMask(xo.departureDaysOfWeek);
+                            return (
+                              <div 
+                                key={xoIdx} 
+                                className={`flex flex-col gap-0.5 text-xs px-2 py-1.5 rounded ${xoType.color} text-white`}
+                              >
+                                <div className="flex items-center gap-1">
+                                  <XOIcon className="h-3 w-3" />
+                                  <span className="font-semibold">{xoType.label}: Train #{xo.trnNumberXO}</span>
+                                </div>
+                                <span className="text-[10px] opacity-90">On: {runDays}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
