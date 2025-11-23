@@ -69,13 +69,13 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
 
   return (
     <div className="space-y-1">
-      <div className="grid grid-cols-7 gap-2 text-xs font-semibold text-muted-foreground pb-2 border-b border-border sticky top-0 bg-card z-10">
+      <div className="grid grid-cols-7 gap-2 text-xs font-semibold text-muted-foreground pb-2 border-b border-border sticky top-0 bg-card z-10 px-2">
         <div>Station</div>
         <div>Code</div>
-        <div>Arrival</div>
-        <div>Departure</div>
+        <div className="font-mono">Arrival (24h)</div>
+        <div className="font-mono">Departure (24h)</div>
         <div>Halt</div>
-        <div>Distance</div>
+        <div>Distance (km)</div>
         <div>Day</div>
       </div>
       
@@ -85,10 +85,10 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
           <div className="grid grid-cols-7 gap-2 py-3 border-b border-border bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg px-2">
             <div className="font-bold text-foreground">{section.halt.name}</div>
             <div className="text-primary font-mono font-bold">{section.halt.code}</div>
-            <div className="text-foreground">{section.halt.arrival}</div>
-            <div className="text-foreground">{section.halt.departure}</div>
+            <div className="text-foreground font-mono tabular-nums">{section.halt.arrival}</div>
+            <div className="text-foreground font-mono tabular-nums">{section.halt.departure}</div>
             <div className="text-accent-foreground font-semibold">{section.halt.halt}</div>
-            <div className="text-muted-foreground">{section.halt.distance.toFixed(1)} km</div>
+            <div className="text-muted-foreground">{section.halt.distance.toFixed(1)}</div>
             <div>
               <Badge variant="outline" className="text-xs">Day {section.halt.day}</Badge>
             </div>
@@ -139,10 +139,10 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
                     >
                       <div className="text-muted-foreground">{intermediate.name}</div>
                       <div className="text-muted-foreground font-mono">{intermediate.code}</div>
-                      <div className="text-muted-foreground">{intermediate.arrival}</div>
-                      <div className="text-muted-foreground">{intermediate.departure}</div>
+                      <div className="text-muted-foreground font-mono tabular-nums">{intermediate.arrival}</div>
+                      <div className="text-muted-foreground font-mono tabular-nums">{intermediate.departure}</div>
                       <div className="text-muted-foreground/70">{intermediate.halt}</div>
-                      <div className="text-muted-foreground/70">{intermediate.distance.toFixed(1)} km</div>
+                      <div className="text-muted-foreground/70">{intermediate.distance.toFixed(1)}</div>
                       <div>
                         <Badge variant="outline" className="text-xs opacity-70">Day {intermediate.day}</Badge>
                       </div>
