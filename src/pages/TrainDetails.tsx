@@ -8,6 +8,7 @@ import { Train } from '@/data/trains';
 import { ArrowLeft, Clock, Calendar, MapPin, Star, Train as TrainIcon, Gauge, Sparkles, Users, History } from 'lucide-react';
 import { useTrainCSVData } from '@/hooks/useTrainCSVData';
 import { getTrainByNumber, getDaysOfWeek, getTrainSchedule, getStationByCode, getTrainXO } from '@/services/csvData';
+import { getZoneCode, getZoneFullName, getTrainType, getRakeType, getRakeTypeDescription } from '@/utils/trainMappings';
 
 const TrainDetails = () => {
   const { trainNumber } = useParams();
@@ -83,7 +84,7 @@ const TrainDetails = () => {
     duration: sortedSchedule.length > 1 
       ? calculateDuration(sortedSchedule[0].depTime, sortedSchedule[sortedSchedule.length - 1].arrTime)
       : 'N/A',
-    type: 'Express',
+    type: getTrainType(trnRow.type),
     days: getDaysOfWeek(parseInt(trnRow.departureDaysOfWeek) || 0),
     classes: trnRow.classesOffered ? trnRow.classesOffered.split('') : [],
     stops: stopsData,
@@ -293,50 +294,46 @@ const TrainDetails = () => {
                 {trnRow?.zone && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Zone</p>
-                    <Badge className="bg-primary text-primary-foreground">{trnRow.zone}</Badge>
+                    <Badge className="bg-primary text-primary-foreground">{getZoneCode(trnRow.zone)}</Badge>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getZoneFullName(getZoneCode(trnRow.zone))}
+                    </p>
                   </div>
                 )}
                 {trnRow?.type && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Train Type</p>
-                    <p className="text-sm text-foreground font-medium">{trnRow.type}</p>
+                    <Badge variant="secondary" className="font-semibold">
+                      {getTrainType(trnRow.type)}
+                    </Badge>
                   </div>
                 )}
                 {trnRow?.rakeType && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Rake Type</p>
                     <Badge variant="outline" className="font-semibold">
-                      {trnRow.rakeType}
+                      {getRakeType(trnRow.rakeType)}
                     </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {trnRow.rakeType.includes('LHB') && '• Linke Hofmann Busch (Modern)'}
-                      {trnRow.rakeType.includes('ICF') && '• Integral Coach Factory (Conventional)'}
-                      {trnRow.rakeType.includes('MEMU') && '• Mainline Electric Multiple Unit'}
-                      {trnRow.rakeType.includes('DEMU') && '• Diesel Electric Multiple Unit'}
-                      {trnRow.rakeType.includes('Duronto') && '• Non-stop Premium Service'}
-                      {trnRow.rakeType.includes('Rajdhani') && '• Premium Long-Distance AC Service'}
-                      {trnRow.rakeType.includes('Shatabdi') && '• Premium Day Train Service'}
-                      {trnRow.rakeType.includes('Antyodaya') && '• Unreserved Long-Distance Service'}
-                      {trnRow.rakeType.includes('Garib Rath') && '• Budget AC Service'}
-                      {trnRow.rakeType.includes('Humsafar') && '• Fully AC 3-Tier Service'}
-                      {trnRow.rakeType.includes('Tejas') && '• Premium Service with Modern Amenities'}
-                      {trnRow.rakeType.includes('Vande Bharat') && '• Semi High-Speed Train-18/20'}
-                    </p>
+                    {getRakeTypeDescription(getRakeType(trnRow.rakeType)) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        • {getRakeTypeDescription(getRakeType(trnRow.rakeType))}
+                      </p>
+                    )}
                   </div>
                 )}
                 {trnRow?.pantry && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Pantry</p>
-                    <Badge variant={trnRow.pantry === 'Y' ? 'default' : 'secondary'}>
-                      {trnRow.pantry === 'Y' ? 'Available' : 'Not Available'}
+                    <Badge variant={trnRow.pantry === 'Y' || trnRow.pantry === '6' || trnRow.pantry === '7' ? 'default' : 'secondary'}>
+                      {trnRow.pantry === 'Y' || trnRow.pantry === '6' || trnRow.pantry === '7' ? 'Available' : 'Not Available'}
                     </Badge>
                   </div>
                 )}
                 {trnRow?.linenBedding && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Linen & Bedding</p>
-                    <Badge variant={trnRow.linenBedding === 'Y' ? 'default' : 'secondary'}>
-                      {trnRow.linenBedding === 'Y' ? 'Available' : 'Not Available'}
+                    <Badge variant={trnRow.linenBedding === 'Y' || trnRow.linenBedding === '1' || trnRow.linenBedding === '2' ? 'default' : 'secondary'}>
+                      {trnRow.linenBedding === 'Y' || trnRow.linenBedding === '1' || trnRow.linenBedding === '2' ? 'Available' : 'Not Available'}
                     </Badge>
                   </div>
                 )}
