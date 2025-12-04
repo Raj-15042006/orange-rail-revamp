@@ -26,7 +26,7 @@ export interface Train {
   departure: string;
   arrival: string;
   duration: string;
-  type: 'Express' | 'Superfast' | 'Local' | 'Rajdhani' | 'Shatabdi';
+  type: string;
   days: string[];
   classes: string[];
   stops: Station[];
