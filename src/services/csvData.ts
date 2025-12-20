@@ -69,12 +69,26 @@ export interface XORow {
   updatedOnNum: string;
 }
 
+// Cached data and indices
 let trnData: TrnRow[] | null = null;
 let stnData: StnRow[] | null = null;
 let schData: SchRow[] | null = null;
 let xoData: XORow[] | null = null;
+
+// Optimized indices for O(1) lookups
 let scheduleIndex: Map<string, SchRow[]> | null = null;
 let xoIndex: Map<string, XORow[]> | null = null;
+let trainIndex: Map<string, TrnRow> | null = null;
+let stationIndex: Map<string, StnRow> | null = null;
+
+// Loading state to prevent duplicate loads
+let isLoading = false;
+let loadPromise: Promise<{
+  trnData: TrnRow[];
+  stnData: StnRow[];
+  schData: SchRow[];
+  xoData: XORow[];
+}> | null = null;
 
 function getDaysOfWeek(dayMask: number): string[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -105,56 +119,41 @@ async function loadCSV<T>(path: string): Promise<T[]> {
   });
 }
 
-export async function initCSVData() {
-  if (!trnData) {
-    trnData = await loadCSV<TrnRow>('/data/Trn.csv');
-    console.log(`Loaded ${trnData.length} trains from CSV`);
+// Build all indices in a single pass for better performance
+function buildIndices() {
+  if (trnData && !trainIndex) {
+    trainIndex = new Map();
+    trnData.forEach(train => {
+      const num = String(train.number).trim();
+      if (num) trainIndex!.set(num, train);
+    });
+    console.log(`Indexed ${trainIndex.size} trains`);
   }
-  
-  if (!stnData) {
-    stnData = await loadCSV<StnRow>('/data/Stn.csv');
-    console.log(`Loaded ${stnData.length} stations from CSV`);
+
+  if (stnData && !stationIndex) {
+    stationIndex = new Map();
+    stnData.forEach(station => {
+      const code = String(station.code).trim();
+      if (code) stationIndex!.set(code, station);
+    });
+    console.log(`Indexed ${stationIndex.size} stations`);
   }
-  
-  if (!schData) {
-    schData = await loadCSV<SchRow>('/data/Sch.csv');
-    console.log(`Loaded ${schData.length} schedule entries from CSV`);
-    
-    // Build index for O(1) schedule lookups
+
+  if (schData && !scheduleIndex) {
     scheduleIndex = new Map();
-    schData.forEach((sch, index) => {
-      // Trim whitespace from train number as CSV might have spacing issues
+    schData.forEach((sch) => {
       const trainNumber = String(sch.trnNumber).trim();
-      
-      if (!trainNumber) {
-        if (index < 5) console.warn('Empty train number at index', index, sch);
-        return;
-      }
+      if (!trainNumber) return;
       
       if (!scheduleIndex!.has(trainNumber)) {
         scheduleIndex!.set(trainNumber, []);
       }
       scheduleIndex!.get(trainNumber)!.push(sch);
     });
-    console.log(`Indexed ${scheduleIndex.size} train schedules from ${schData.length} entries`);
-    
-    // Debug: check if specific train exists
-    const sample = scheduleIndex.get('12971');
-    if (sample) {
-      console.log(`Train 12971 has ${sample.length} stops`);
-    } else {
-      console.warn('Train 12971 not found in index');
-      // Check if data exists with different format
-      const found = schData.find(s => String(s.trnNumber).includes('12971'));
-      if (found) console.log('Found 12971 in raw data:', found);
-    }
+    console.log(`Indexed ${scheduleIndex.size} train schedules`);
   }
 
-  if (!xoData) {
-    xoData = await loadCSV<XORow>('/data/XO.csv');
-    console.log(`Loaded ${xoData.length} crossing/overtake entries from CSV`);
-    
-    // Build index for O(1) crossings/overtakes lookups
+  if (xoData && !xoIndex) {
     xoIndex = new Map();
     xoData.forEach((xo) => {
       const trainNumber = String(xo.trnNumber).trim();
@@ -165,10 +164,50 @@ export async function initCSVData() {
       }
       xoIndex!.get(trainNumber)!.push(xo);
     });
-    console.log(`Indexed ${xoIndex.size} train crossings/overtakes`);
+    console.log(`Indexed ${xoIndex.size} train crossings/overtakes with ${xoData.length} total entries`);
   }
+}
+
+export async function initCSVData() {
+  // Return cached data if already loaded
+  if (trnData && stnData && schData && xoData) {
+    return { trnData, stnData, schData, xoData };
+  }
+
+  // Return existing promise if already loading
+  if (isLoading && loadPromise) {
+    return loadPromise;
+  }
+
+  isLoading = true;
   
-  return { trnData, stnData, schData, xoData };
+  loadPromise = (async () => {
+    try {
+      // Load all CSVs in parallel for faster initialization
+      const [trains, stations, schedules, crossings] = await Promise.all([
+        trnData ? Promise.resolve(trnData) : loadCSV<TrnRow>('/data/Trn.csv'),
+        stnData ? Promise.resolve(stnData) : loadCSV<StnRow>('/data/Stn.csv'),
+        schData ? Promise.resolve(schData) : loadCSV<SchRow>('/data/Sch.csv'),
+        xoData ? Promise.resolve(xoData) : loadCSV<XORow>('/data/XO.csv').catch(() => [] as XORow[]),
+      ]);
+
+      trnData = trains;
+      stnData = stations;
+      schData = schedules;
+      xoData = crossings;
+
+      console.log(`Loaded ${trnData.length} trains, ${stnData.length} stations, ${schData.length} schedules, ${xoData.length} XO entries`);
+
+      // Build all indices after loading
+      buildIndices();
+
+      return { trnData, stnData, schData, xoData };
+    } finally {
+      isLoading = false;
+    }
+  })();
+
+  return loadPromise;
 }
 
 export function getTrnData(): TrnRow[] {
@@ -218,13 +257,21 @@ export function getTrainSchedule(trainNumber: string): SchRow[] {
 }
 
 export function getTrainByNumber(trainNumber: string): TrnRow | undefined {
-  if (!trnData) throw new Error('Train data not initialized');
-  return trnData.find(train => train.number === trainNumber);
+  if (!trainIndex) {
+    if (!trnData) throw new Error('Train data not initialized');
+    // Fallback to linear search if index not built
+    return trnData.find(train => train.number === trainNumber);
+  }
+  return trainIndex.get(String(trainNumber).trim());
 }
 
 export function getStationByCode(stationCode: string): StnRow | undefined {
-  if (!stnData) throw new Error('Station data not initialized');
-  return stnData.find(station => station.code === stationCode);
+  if (!stationIndex) {
+    if (!stnData) throw new Error('Station data not initialized');
+    // Fallback to linear search if index not built
+    return stnData.find(station => station.code === stationCode);
+  }
+  return stationIndex.get(String(stationCode).trim());
 }
 
 export function searchTrains(from?: string, to?: string, day?: string): TrnRow[] {
