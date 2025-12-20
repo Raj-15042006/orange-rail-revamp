@@ -85,22 +85,25 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
     return activeDays.length === 7 ? 'Daily' : activeDays.join(', ');
   };
 
-  const XOBadges = ({ xoInfo }: { xoInfo: XORow[] }) => {
-    if (xoInfo.length === 0) return null;
+  const XOBadges = ({ xoInfo, compact = false }: { xoInfo: XORow[], compact?: boolean }) => {
+    if (!xoInfo || xoInfo.length === 0) return null;
+    
     return (
-      <div className="flex flex-wrap gap-1.5 mt-2">
+      <div className={`flex flex-wrap gap-1.5 ${compact ? 'mt-1' : 'mt-2'}`}>
         {xoInfo.map((xo, idx) => {
           const xoType = getXOTypeLabel(xo.type);
           const XOIcon = xoType.icon;
           const runDays = getDaysFromMask(xo.departureDaysOfWeek);
+          const trainNum = String(xo.trnNumberXO).trim();
+          
           return (
             <div 
-              key={idx} 
-              className={`flex flex-col gap-0.5 text-xs px-2 py-1.5 rounded ${xoType.color} text-white`}
+              key={`${trainNum}-${xo.stnCode}-${idx}`} 
+              className={`flex flex-col gap-0.5 text-xs px-2 py-1.5 rounded ${xoType.color} text-white shadow-sm`}
             >
               <div className="flex items-center gap-1">
                 <XOIcon className="h-3 w-3" />
-                <span className="font-semibold">{xoType.label}: #{xo.trnNumberXO}</span>
+                <span className="font-semibold">{xoType.label}: #{trainNum}</span>
               </div>
               <span className="text-[10px] opacity-90">{runDays}</span>
             </div>
