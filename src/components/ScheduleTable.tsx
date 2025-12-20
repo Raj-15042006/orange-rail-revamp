@@ -38,7 +38,8 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
     
     const intermediates = stops.slice(currentIdx + 1, nextIdx).map((stop, i) => {
       const intermediateStop = stops[currentIdx + 1 + i];
-      const xoInfo = crossingsData.filter(xo => xo.stnCode === intermediateStop.code);
+      const stopCode = String(intermediateStop.code).trim();
+      const xoInfo = crossingsData.filter(xo => String(xo.stnCode).trim() === stopCode);
       return {
         ...intermediateStop,
         originalIndex: currentIdx + 1 + i,
@@ -46,7 +47,8 @@ export const ScheduleTable = ({ stops, rawSchedule, crossingsData }: ScheduleTab
       };
     });
 
-    const xoInfo = crossingsData.filter(xo => xo.stnCode === halt.code);
+    const haltCode = String(halt.code).trim();
+    const xoInfo = crossingsData.filter(xo => String(xo.stnCode).trim() === haltCode);
     
     return {
       halt,
